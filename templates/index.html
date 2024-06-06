@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Chatbot</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #eff3f6;
+            margin: 0; /* Remove default margin */
+        }
+
+        .chat-container {
+            width: 400px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            height: 100vh;
+            max-height: 70vh;
+            margin: 10px;
+            /* Set a fixed height */
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(to right, #007bff, #0056b3);
+            color: #fff;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+
+        .chatbot-logo {
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 50%;
+            margin-right: 20px;
+        }
+
+        .chat-header-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .chat-history {
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
+            max-height: calc(100% - 110px); /* Adjusted max-height */
+        }
+
+        .message {
+            margin-bottom: 10px;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: #dcf8c6;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+
+        .message-text {
+            font-size: 1rem;
+        }
+
+        .chat-input-container {
+            display: flex;
+            flex-direction: column;
+            padding: 10px 20px;
+            border-top: 1px solid #ddd;
+            align-items: center;
+        }
+
+        #chat-input {
+            flex: 1;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #e0e0e0;
+        }
+
+        #voice-assistant-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            color: #000000;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        #voice-assistant-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .knowledge-question {
+            font-size: 0.9rem;
+            font-weight: normal;
+            margin-bottom: 5px;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .knowledge-level-select {
+            margin-bottom: 5px;
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #e0e0e0;
+        }
+
+        .chat-input {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #e0e0e0;
+        }
+
+        .send-button {
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .send-button:hover {
+            background-color: #0056b3;
+        }
+
+        .feedback-question {
+            font-size: 0.9rem;
+            font-weight: normal;
+            margin-bottom: 5px;
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+        }
+
+        .feedback-buttons {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .feedback-button {
+            flex: 0.4;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .feedback-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <img src="https://i.ibb.co/fSNP7Rz/icons8-chatgpt-512.png" alt="Chatbot Logo" class="chatbot-logo">
+            <div class="chat-header-info">
+                <div class="chat-header-title">HealthCare Chatbot</div>
+                <div class="message-text">Any health queries? Don't worry, I got you.</div>
+            </div>
+        </div>
+        <div class="knowledge-question">Your knowledge level:</div>
+        <div class="knowledge-level-select-container">
+            <select id="knowledge-level" class="knowledge-level-select">
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+            </select>
+        </div>
+        <div class="chat-history" id="chat-history">
+            <!-- Chat messages will be added here dynamically -->
+        </div>
+
+        <!--<div class="Feedback-Section" id="Feedback-section">
+            <div class="feedback-question">Was the response helpful?</div>
+            <div class="feedback-buttons">
+                <button id="easy-feedback" class="feedback-button" onclick="giveFeedback('easy')">Easy</button>
+                <button id="hard-feedback" class="feedback-button" onclick="giveFeedback('hard')">Hard</button>
+            </div>
+        </div>-->
+
+        <div class="chat-input-container">
+            <div class="input-container">
+                <input type="text" id="chat-input" class="chat-input" placeholder="Type your health query...">
+                <!-- <button id="voice-assistant-btn" class="voice-assistant-btn" onclick="startVoiceAssistant()">🎙</button>-->
+            </div>
+            <button id="send-button" class="send-button" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const user_id = uuid.v4();
+            let chatHistoryArray = [];
+
+            document.getElementById('send-button').addEventListener('click', function (event) {
+                event.preventDefault();
+                sendMessage();
+            });
+
+            document.getElementById('chat-input').addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            document.getElementById('voice-assistant-btn').addEventListener('click', function () {
+                startVoiceAssistant();
+            });
+
+
+
+
+
+
+
+
+
+
+
+
+
+            function showLoadingMessage() {
+                const chatHistory = document.getElementById('chat-history');
+                const loadingMessage = createMessageElement('bot-message', 'Typing...');
+                chatHistory.appendChild(loadingMessage);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }
+
+            function hideLoadingMessage() {
+                const chatHistory = document.getElementById('chat-history');
+                const loadingMessages = chatHistory.getElementsByClassName('bot-message');
+                if (loadingMessages.length > 0 && loadingMessages[loadingMessages.length - 1].textContent === 'Typing...') {
+                    loadingMessages[loadingMessages.length - 1].remove();
+                }
+            }
+
+            function showFeedbackSection() {
+                const feedbackSection = document.getElementById('Feedback-section');
+                const feedbackSelectContainer = document.querySelector('.feedback-select-container');
+
+                feedbackSection.style.display = 'flex';
+                feedbackSelectContainer.style.display = 'block';
+            }
+
+            function giveFeedback(feedback) {
+                if (feedback !== undefined && feedback !== null && feedback !== '') {
+                    console.log('User feedback:', feedback);
+                    const userId = user_id;
+                    fetch('/feedback', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `user_id=${encodeURIComponent(userId)}&feedback=${encodeURIComponent(feedback)}`,
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Feedback response from server:', data);
+                    })
+                    .catch(error => {
+                        console.error('Error sending feedback to server:', error);
+                    })
+                    .finally(() => {
+                        const feedbackSection = document.getElementById('Feedback-section');
+                        feedbackSection.style.display = 'none';
+                    });
+                }
+            }
+
+          function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const messageText = input.value.trim();
+    const feedbackSelect = document.getElementById('Feedback');
+    const feedback = feedbackSelect ? feedbackSelect.value : 'default';
+
+    if (messageText !== '') {
+        const chatHistory = document.getElementById('chat-history');
+        showLoadingMessage();
+
+        fetch('/chatbot', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `message=${encodeURIComponent(messageText)}&knowledge_level=beginner&user_id=${encodeURIComponent(user_id)}&feedback=${encodeURIComponent(feedback)}`,
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoadingMessage();
+            const botResponse = data.response; // Adjust here
+            typeMessage(messageText, 'user-message');
+            requestAnimationFrame(() => {
+                typeMessage(botResponse, 'bot-message');
+            });
+
+            if (data.feedback_request) {
+                showFeedbackSection();
+            }
+        })
+        .catch(error => {
+            console.error('Error sending message to server:', error);
+        })
+        .finally(() => {
+            input.value = '';
+            document.getElementById('chat-history-container').innerHTML = chatHistoryArray.join('');
+        });
+    }
+}
+
+
+            function typeMessage(text, messageType) {
+                const chatHistory = document.getElementById('chat-history');
+                const messageElement = createMessageElement(messageType, '');
+                chatHistory.appendChild(messageElement);
+                const messageTextElement = document.createElement('div');
+                messageTextElement.classList.add('message-text');
+                messageElement.appendChild(messageTextElement);
+
+                let index = 0;
+
+                function addLetter() {
+                    messageTextElement.textContent += text[index];
+                    index++;
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+
+                    if (index < text.length) {
+                        setTimeout(addLetter, 50);
+                    }
+                }
+                addLetter();
+            }
+
+            function createMessageElement(type, text) {
+                const message = document.createElement('div');
+                message.classList.add('message');
+                message.classList.add(type);
+
+                const messageTextElement = document.createElement('div');
+                messageTextElement.classList.add('message-text');
+                messageTextElement.textContent = text;
+
+                message.appendChild(messageTextElement);
+                return message;
+            }
+
+            function addBotMessage(userInput, botResponse) {
+                const chatHistory = document.getElementById('chat-history');
+                const userMessage = createMessageElement('user-message', userInput);
+                chatHistory.appendChild(userMessage);
+                const botMessage = createMessageElement('bot-message', botResponse);
+                chatHistory.appendChild(botMessage);
+                chatHistoryArray.push(userMessage.outerHTML, botMessage.outerHTML);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }
+
+            window.addEventListener('beforeunload', function () {
+                recognizer.stop();
+            });
+        });
+    </script>
+</body>
+</html>
